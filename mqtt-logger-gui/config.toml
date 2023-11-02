@@ -1,0 +1,7 @@
+[recorder]
+broker_address = "localhost"
+topics = ["$SYS/#"]
+output_dir = "data"
+
+[player]
+broker_address = "localhost"
