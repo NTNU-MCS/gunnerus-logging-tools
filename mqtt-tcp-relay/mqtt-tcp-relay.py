@@ -5,18 +5,22 @@ import paho.mqtt.client as mqtt
 import socket
 import signal
 import threading
+import toml
 
 class MQTTTCPRelay:
     def __init__(self):
+
+        self.mqtt_broker_address = None
+        self.mqtt_topic = None
+        self.port = None
+
+        self.__config()
+
         self.host = 'localhost'
-        self.port = 25508
+
         self.tcp_clients = []
         self.tcp_server = None
-
-        self.mqtt_broker_address = "mqtt.gunnerus.it.ntnu.no"
-        self.mqtt_topic = "gunnerus/NMEA/#"
         self.mqtt_client = None
-
         self.stop = False
 
         signal.signal(signal.SIGINT, self.__signal_handler)
@@ -69,6 +73,14 @@ class MQTTTCPRelay:
 
     def __signal_handler(self, sig, frame):
         self.stop = True
+
+    def __config(self):
+        with open("config.toml", "r") as f:
+            config = toml.load(f)
+
+        self.port = config["tcp"]["port"]
+        self.mqtt_broker_address = config["mqtt"]["broker_address"]
+        self.mqtt_topic = config["mqtt"]["topic"]
 
     def loop(self):
         while True:

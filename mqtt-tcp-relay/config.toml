@@ -1,0 +1,9 @@
+[mqtt]
+# MQTT server for incoming messages
+broker_address = "mqtt.gunnerus.it.ntnu.no"
+# Single topic!
+topic = "gunnerus/NMEA/#"
+
+[tcp]
+# TCP server for outgoing messages
+port = 25508
