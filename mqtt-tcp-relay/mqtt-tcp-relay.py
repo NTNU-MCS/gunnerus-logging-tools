@@ -6,12 +6,13 @@ import socket
 import signal
 import threading
 import toml
+import pynmea2
 
 class MQTTTCPRelay:
     def __init__(self):
 
         self.mqtt_broker_address = None
-        self.mqtt_topic = None
+        self.mqtt_topics = None
         self.port = None
 
         self.__config()
@@ -34,7 +35,10 @@ class MQTTTCPRelay:
         self.mqtt_client = mqtt.Client()
         self.mqtt_client.connect(self.mqtt_broker_address)
         self.mqtt_client.on_message = self.__mqtt_callback
-        self.mqtt_client.subscribe(self.mqtt_topic)
+
+        for topic in self.mqtt_topics:
+            self.mqtt_client.subscribe(topic)
+            
         self.mqtt_client.loop_start()
 
     def __tcp_server_loop(self):
@@ -63,13 +67,26 @@ class MQTTTCPRelay:
         _userdata = args[1]
         _message = args[2]
 
-        if len(out := _message.payload.decode().split(" ", 1)) != 2:
-            print(f"Invalid message {_message.payload.decode()}")
-            return
 
-        timestamp, msg = out
+        if "NMEA" in _message.topic:
+            if len(out := _message.payload.decode().split(" ", 1)) != 2:
+                print(f"Invalid message {_message.payload.decode()}")
+                return
 
-        self.__broadcast(f"{msg}\n")
+            timestamp, msg = out
+            self.__broadcast(f"{msg}\n")
+        elif "SeapathMRU/Heading" in _message.topic:
+            heading = _message.payload.decode().split(",")[0]
+            nmea_sentence = pynmea2.HDT("GP", "HDT", (heading, "T"))
+            self.__broadcast(f"{nmea_sentence}\n")
+
+        elif "SeapathMRU_rates/YawRate" in _message.topic:
+            rate = float(_message.payload.decode().split(",")[0])
+            rate = rate/60.0
+            nmea_sentence = pynmea2.HDT("GP", "ROT", (f"{rate:0,.4f}", "T"))
+            self.__broadcast(f"{nmea_sentence}\n")
+
+
 
     def __signal_handler(self, sig, frame):
         self.stop = True
@@ -80,7 +97,7 @@ class MQTTTCPRelay:
 
         self.port = config["tcp"]["port"]
         self.mqtt_broker_address = config["mqtt"]["broker_address"]
-        self.mqtt_topic = config["mqtt"]["topic"]
+        self.mqtt_topics = config["mqtt"]["topics"]
 
     def loop(self):
         while True:
