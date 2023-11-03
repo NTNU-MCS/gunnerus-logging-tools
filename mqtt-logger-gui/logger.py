@@ -40,6 +40,9 @@ class RecorderPlayerApp:
 
         self.configuration = None
 
+        self.recording_label = tk.Label(root, text="", fg="red")
+
+
         # Buttons
         self.record_button = tk.Button(root, text="Record", command=self.record)
         self.play_button = tk.Button(root, text="Play", command=self.play)
@@ -51,6 +54,7 @@ class RecorderPlayerApp:
         self.record_button.grid(row=0, column=1, padx=10, pady=10)
         self.stop_button.grid(row=0, column=2, padx=10, pady=10)
         self.configure_button.grid(row=0, column=4, padx=10, pady=10)
+        self.recording_label.grid(row=1, column=0, padx=10, pady=10)
 
     def update_config(self):
         """
@@ -90,6 +94,7 @@ class RecorderPlayerApp:
             verbose=True
         )
 
+        self.recording_label.config(text="recording")
         self.rec.start()
         print(f"Recording started at {timestamp}")
 
@@ -115,6 +120,8 @@ class RecorderPlayerApp:
         if self.rec is not None:
             self.rec.stop()
             self.rec = None
+
+        self.recording_label.config(text="")
 
 
 
