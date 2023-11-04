@@ -1,0 +1,9 @@
+services:
+  relay:
+    build:
+      context: .
+    volumes:
+      - type: bind
+        source: ./config.toml
+        target: /app/config.toml
+    network_mode: host

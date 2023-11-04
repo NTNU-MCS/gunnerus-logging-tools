@@ -19,6 +19,9 @@ class MQTTTCPRelay:
 
         self.host = 'localhost'
 
+        print(f"Relaying MQTT messages to TCP clients from {self.mqtt_broker_address}")
+        print(f"Starting MQTT TCP relay on {self.host}:{self.port}...")
+
         self.tcp_clients = []
         self.tcp_server = None
         self.mqtt_client = None
@@ -38,7 +41,7 @@ class MQTTTCPRelay:
 
         for topic in self.mqtt_topics:
             self.mqtt_client.subscribe(topic)
-            
+
         self.mqtt_client.loop_start()
 
     def __tcp_server_loop(self):
@@ -67,7 +70,7 @@ class MQTTTCPRelay:
         _userdata = args[1]
         _message = args[2]
 
-
+        # TODO: This is a custom hack for a specific use case.
         if "NMEA" in _message.topic:
             if len(out := _message.payload.decode().split(" ", 1)) != 2:
                 print(f"Invalid message {_message.payload.decode()}")

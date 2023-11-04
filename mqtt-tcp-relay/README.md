@@ -10,9 +10,9 @@ Run the script:
 python mqtt_tcp_relay.py
 ```
 
-The script reads the data stream from MQTT broker of the Gunnerus and creates a server that listens to TCP connections on port `25508`. The data is then sent to the each TCP client.
+The script reads the data stream from MQTT broker of the Gunnerus and creates a server that listens to TCP connections on port `2947`. The data is then sent to the each TCP client.
 
 You can test the connection using netcat:
 ```bash
-nc localhost 25508
+nc localhost 2947
 ```

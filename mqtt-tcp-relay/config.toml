@@ -1,13 +1,12 @@
 [mqtt]
 # MQTT server for incoming messages
-broker_address = "mqtt.gunnerus.it.ntnu.no"
-# Single topic!
+broker_address = "localhost"
 topics = [
-    "gunnerus/NMEA/#", 
+    "gunnerus/NMEA/#",
     "gunnerus/RVG_mqtt/SeapathMRU/Heading",
     "gunnerus/RVG_mqtt/SeapathMRU_rates/YawRate"
 ]
 
 [tcp]
 # TCP server for outgoing messages
-port = 25508
+port = 2947

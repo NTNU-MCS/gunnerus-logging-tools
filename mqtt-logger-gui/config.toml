@@ -1,6 +1,6 @@
 [recorder]
 broker_address = "localhost"
-topics = ["$SYS/#"]
+topics = ["#"]
 output_dir = "data"
 
 [player]
