@@ -1,6 +1,16 @@
 [mqtt]
-# MQTT server for incoming messages
-broker_address = "localhost"
+
+## MQTT server for incoming messages
+# "mosquitto" is the name of the docker container. Keep it mosquitto if you want
+#   to run the docker-compose file as is.
+# "localhost" if you want to run the docker-compose file with the --net=host
+#   option. Or running it without docker.
+broker_address = "mosquitto"
+
+## Custom MQTT topics to subscribe to
+# The topics are used to filter out messages from the MQTT broker.
+# Even though they are defined as configuration, they are not used as such.
+# Do not modify it unless the message types changes for RV Gunnerus.
 topics = [
     "gunnerus/NMEA/#",
     "gunnerus/RVG_mqtt/SeapathMRU/Heading",
@@ -8,5 +18,7 @@ topics = [
 ]
 
 [tcp]
-# TCP server for outgoing messages
+## TCP server for outgoing messages
+# Keep it "0.0.0.0" for docker
+host = "0.0.0.0"
 port = 2947

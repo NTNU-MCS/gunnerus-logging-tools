@@ -7,6 +7,8 @@ import signal
 import threading
 import toml
 import pynmea2
+import time
+
 
 class MQTTTCPRelay:
     def __init__(self):
@@ -14,13 +16,11 @@ class MQTTTCPRelay:
         self.mqtt_broker_address = None
         self.mqtt_topics = None
         self.port = None
+        self.host = None
 
         self.__config()
 
-        self.host = 'localhost'
-
         print(f"Relaying MQTT messages to TCP clients from {self.mqtt_broker_address}")
-        print(f"Starting MQTT TCP relay on {self.host}:{self.port}...")
 
         self.tcp_clients = []
         self.tcp_server = None
@@ -36,7 +36,17 @@ class MQTTTCPRelay:
 
     def __mqtt_client_loop(self):
         self.mqtt_client = mqtt.Client()
-        self.mqtt_client.connect(self.mqtt_broker_address)
+
+        while not self.stop:
+            try:
+                self.mqtt_client.connect(self.mqtt_broker_address)
+                print(f"Starting MQTT TCP relay on {self.host}:{self.port}...")
+                break
+            except ConnectionRefusedError:
+                print(f"Connection refused to {self.mqtt_broker_address} retrying in 5 second...")
+                time.sleep(5)
+                pass
+
         self.mqtt_client.on_message = self.__mqtt_callback
 
         for topic in self.mqtt_topics:
@@ -50,19 +60,24 @@ class MQTTTCPRelay:
         self.tcp_server.bind((self.host, self.port))
         self.tcp_server.listen()
 
+        print(f"TCP server listening on {self.host}:{self.port}")
         while not self.stop:
             try:
                 client_socket, client_address = self.tcp_server.accept()
+                print(f"New client connected {client_address}")
             except socket.timeout:
                 pass
             else:
                 self.tcp_clients.append(client_socket)
+
+        self.tcp_server.close()
 
     def __broadcast(self, msg):
         for client in self.tcp_clients:
             try:
                 client.send(msg.encode())
             except:
+                print(f"Client {client} disconnected")
                 self.tcp_clients.remove(client)
 
     def __mqtt_callback(self, *args, **kwds):
@@ -92,6 +107,7 @@ class MQTTTCPRelay:
 
 
     def __signal_handler(self, sig, frame):
+        print("Stopping MQTT TCP relay...")
         self.stop = True
 
     def __config(self):
@@ -99,6 +115,7 @@ class MQTTTCPRelay:
             config = toml.load(f)
 
         self.port = config["tcp"]["port"]
+        self.host = config["tcp"]["host"]
         self.mqtt_broker_address = config["mqtt"]["broker_address"]
         self.mqtt_topics = config["mqtt"]["topics"]
 

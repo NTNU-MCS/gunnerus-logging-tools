@@ -1,0 +1,3 @@
+include:
+- mqtt-tcp-relay/compose.yml
+- mqtt-broker/compose.yml

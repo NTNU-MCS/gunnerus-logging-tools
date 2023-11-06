@@ -1,7 +1,7 @@
 [recorder]
-broker_address = "localhost"
+broker_address = "mosquitto"
 topics = ["#"]
 output_dir = "data"
 
 [player]
-broker_address = "localhost"
+broker_address = "mosquitto"

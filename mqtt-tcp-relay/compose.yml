@@ -6,4 +6,8 @@ services:
       - type: bind
         source: ./config.toml
         target: /app/config.toml
-    network_mode: host
+    expose:
+      - "2947"
+    ports:
+      - "2947:2947"
+    # network_mode: host

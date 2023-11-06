@@ -5,7 +5,7 @@
 # https://docs.docker.com/engine/reference/builder/
 
 ARG PYTHON_VERSION=3.12
-FROM python:${PYTHON_VERSION}-slim as base
+FROM python:${PYTHON_VERSION} as base
 
 # Prevents Python from writing pyc files.
 ENV PYTHONDONTWRITEBYTECODE=1
@@ -45,4 +45,4 @@ COPY *.py .
 EXPOSE 2947
 
 # Run the application.
-CMD python -u mqtt-tcp-relay.py
+CMD python -u logger.py
