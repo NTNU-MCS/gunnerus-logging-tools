@@ -1,7 +1,11 @@
 [recorder]
-broker_address = "mosquitto"
+broker_address = "localhost"
 topics = ["#"]
 output_dir = "data"
 
 [player]
-broker_address = "mosquitto"
+broker_address = "localhost"
+topics = [
+    "#/NMEA/#",
+    "#/SeapathMRU/#"
+]

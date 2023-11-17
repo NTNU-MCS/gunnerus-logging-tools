@@ -21,6 +21,7 @@ import time
 from pathlib import Path
 import mqtt_logger
 import toml
+import threading
 
 class RecorderPlayerApp:
     """
@@ -103,15 +104,20 @@ class RecorderPlayerApp:
         Start playing back MQTT messages. The messages are read from a sqlite
         database.
         """
+
         file_path = filedialog.askopenfilename(title="Select a recording file")
         self.playback = mqtt_logger.Playback(
             sqlite_database_path=file_path,
             broker_address=self.configuration['player']['broker_address'],
-            verbose=True
+            verbose=True,
+            topics=self.configuration['player']["topics"]
         )
+        self.recording_label.config(text="playing")
 
         # Start playback at 1x speed (just as fast)
-        self.playback.play(speed=1)
+        # self.playback.play(speed=4)
+        threading.Thread(target=self.playback.play, args=(4,)).start()
+
 
     def stop(self):
         """
@@ -120,6 +126,10 @@ class RecorderPlayerApp:
         if self.rec is not None:
             self.rec.stop()
             self.rec = None
+
+        if self.playback is not None:
+            self.playback.stop()
+            self.playback = None
 
         self.recording_label.config(text="")
 
