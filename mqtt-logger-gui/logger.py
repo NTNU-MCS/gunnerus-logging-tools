@@ -116,7 +116,11 @@ class RecorderPlayerApp:
 
         # Start playback at 1x speed (just as fast)
         # self.playback.play(speed=4)
-        threading.Thread(target=self.playback.play, args=(4,)).start()
+        def worker(self):
+            self.playback.play(1)
+            self.recording_label.config(text="")
+
+        threading.Thread(target=worker, args=(self,)).start()
 
 
     def stop(self):
