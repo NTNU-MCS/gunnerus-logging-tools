@@ -5,8 +5,9 @@
 #   to run the docker-compose file as is.
 # "localhost" if you want to run the docker-compose file with the --net=host
 #   option. Or running it without docker.
-broker_address = "mosquitto"
+# broker_address = "mosquitto"
 
+broker_address = "mqtt.gunnerus.it.ntnu.no"
 ## Custom MQTT topics to subscribe to
 # The topics are used to filter out messages from the MQTT broker.
 # Even though they are defined as configuration, they are not used as such.
