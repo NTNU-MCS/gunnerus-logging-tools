@@ -8,17 +8,20 @@ import threading
 import toml
 import pynmea2
 import time
+import argparse
+import os
+from dateutil import parser
 
 
-class MQTTTCPRelay:
-    def __init__(self):
+class MQTTRelay:
+    def __init__(self, config_file=None):
 
         self.mqtt_broker_address = None
         self.mqtt_topics = None
         self.port = None
         self.host = None
 
-        self.__config()
+        self.__config(config_file)
 
         print(f"Relaying MQTT messages to TCP clients from {self.mqtt_broker_address}")
 
@@ -35,7 +38,7 @@ class MQTTTCPRelay:
         self.__mqtt_client_loop()
 
     def __mqtt_client_loop(self):
-        self.mqtt_client = mqtt.Client()
+        self.mqtt_client = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
 
         while not self.stop:
             try:
@@ -43,7 +46,9 @@ class MQTTTCPRelay:
                 print(f"Starting MQTT TCP relay on {self.host}:{self.port}...")
                 break
             except ConnectionRefusedError:
-                print(f"Connection refused to {self.mqtt_broker_address} retrying in 5 second...")
+                print(
+                    f"Connection refused to {self.mqtt_broker_address} retrying in 5 second..."
+                )
                 time.sleep(5)
                 pass
 
@@ -92,26 +97,40 @@ class MQTTTCPRelay:
                 return
 
             timestamp, msg = out
+
             self.__broadcast(f"{msg}\n")
+
         elif "SeapathMRU/Heading" in _message.topic:
             heading = _message.payload.decode().split(",")[0]
+            # ISO 8601
+            timetext = _message.payload.decode().split(",")[1]
+            timestamp = parser.isoparse(timetext)
+
             nmea_sentence = pynmea2.HDT("GP", "HDT", (heading, "T"))
+
             self.__broadcast(f"{nmea_sentence}\n")
 
         elif "SeapathMRU_rates/YawRate" in _message.topic:
             rate = float(_message.payload.decode().split(",")[0])
-            rate = rate/60.0
+            rate = rate / 60.0
             nmea_sentence = pynmea2.HDT("GP", "ROT", (f"{rate:0,.4f}", "T"))
+            # ISO 8601
+            timetext = _message.payload.decode().split(",")[1]
+            timestamp = parser.isoparse(timetext)
+
             self.__broadcast(f"{nmea_sentence}\n")
-
-
 
     def __signal_handler(self, sig, frame):
         print("Stopping MQTT TCP relay...")
         self.stop = True
 
-    def __config(self):
-        with open("config.toml", "r") as f:
+    def __config(self, config_file=None):
+        if config_file is None:
+            # Get the directory of the current script, resolving symlinks
+            script_dir = os.path.dirname(os.path.realpath(__file__))
+            config_file = os.path.join(script_dir, "config.toml")
+
+        with open(config_file, "r") as f:
             config = toml.load(f)
 
         self.port = config["tcp"]["port"]
@@ -127,9 +146,18 @@ class MQTTTCPRelay:
 
 
 def main():
-    relay = MQTTTCPRelay()
+    parser = argparse.ArgumentParser(description="MQTT to TCP relay")
+    parser.add_argument(
+        "--config",
+        "-c",
+        help="Path to config file (default: config.toml in script directory)",
+    )
+    args = parser.parse_args()
+
+    relay = MQTTRelay(args.config)
 
     relay.loop()
+
 
 if __name__ == "__main__":
     main()
